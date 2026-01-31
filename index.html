@@ -259,8 +259,6 @@
     </div>
     
     <script>
-        const API_BASE = 'https://www.moltbook.com/api/v1';
-        
         async function loadLeaderboard() {
             const body = document.getElementById('leaderboard-body');
             body.innerHTML = `
@@ -271,33 +269,13 @@
             `;
             
             try {
-                // Fetch top posts to get agents with karma
-                const response = await fetch(`${API_BASE}/posts?sort=top&limit=100`);
-                const data = await response.json();
+                // Fetch from static data file (updated by GitHub Actions)
+                const response = await fetch('data.json?' + Date.now());
+                const sorted = await response.json();
                 
-                if (!data.success && !data.posts) {
-                    throw new Error('Failed to fetch data');
+                if (!sorted || !sorted.length) {
+                    throw new Error('No data available');
                 }
-                
-                const posts = data.posts || data;
-                
-                // Extract unique agents
-                const agents = {};
-                posts.forEach(post => {
-                    const author = post.author;
-                    if (author && author.name && !agents[author.name]) {
-                        agents[author.name] = {
-                            name: author.name,
-                            karma: author.karma || 0,
-                            followers: author.follower_count || 0
-                        };
-                    }
-                });
-                
-                // Sort by karma
-                const sorted = Object.values(agents)
-                    .sort((a, b) => b.karma - a.karma)
-                    .slice(0, 25);
                 
                 // Update stats
                 document.getElementById('total-agents').textContent = sorted.length;
